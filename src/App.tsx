@@ -39,6 +39,42 @@ const INSIDE_JOKES = [
   "For being my sunshine on rainy days ☀️"
 ];
 
+const LightningClick = () => {
+  const [bolts, setBolts] = useState<{ id: number; x: number; y: number }[]>([]);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const id = Date.now();
+      setBolts(prev => [...prev, { id, x: e.clientX, y: e.clientY }]);
+      setTimeout(() => {
+        setBolts(prev => prev.filter(b => b.id !== id));
+      }, 500);
+    };
+
+    window.addEventListener('mousedown', handleClick);
+    return () => window.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[100]">
+      <AnimatePresence>
+        {bolts.map(bolt => (
+          <motion.div
+            key={bolt.id}
+            initial={{ opacity: 1, scale: 0.5 }}
+            animate={{ opacity: 0, scale: 2, rotate: [0, 45, -45, 0] }}
+            exit={{ opacity: 0 }}
+            style={{ left: bolt.x - 20, top: bolt.y - 20 }}
+            className="absolute"
+          >
+            <Zap className="w-10 h-10 text-party-gold fill-party-gold drop-shadow-[0_0_10px_#ffd700]" />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 // --- Components ---
 
 const ConfettiBackground = () => {
@@ -151,6 +187,7 @@ export default function App() {
   const [jokeIndex, setJokeIndex] = useState(0);
   const [showFinale, setShowFinale] = useState(false);
   const [giftOpened, setGiftOpened] = useState(false);
+  const [pikachuMode, setPikachuMode] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -188,8 +225,8 @@ export default function App() {
 
   const playSound = (type: 'pop' | 'tada' | 'cheer') => {
     if (isMuted) return;
-    // Simple synthesized sounds using Web Audio API for a "self-contained" feel
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     
@@ -270,9 +307,30 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen relative pb-20">
+    <div className={cn(
+      "min-h-screen relative pb-20 transition-colors duration-1000",
+      pikachuMode ? "bg-[#2d2d00]" : "bg-party-purple"
+    )}>
       <ConfettiBackground />
+      <LightningClick />
       
+      {/* Pikachu Mode Toggle */}
+      <button 
+        onClick={() => {
+          setPikachuMode(!pikachuMode);
+          if (!pikachuMode) playSound('pop');
+        }}
+        className={cn(
+          "fixed top-6 left-6 z-40 p-3 glass transition-all rounded-full flex items-center gap-2 px-4",
+          pikachuMode ? "bg-party-gold text-party-purple" : "hover:bg-white/20"
+        )}
+      >
+        <Zap className={cn("w-5 h-5", pikachuMode && "fill-current")} />
+        <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline">
+          {pikachuMode ? "Pikachu Mode ON" : "Pikachu Mode"}
+        </span>
+      </button>
+
       {/* Mute Toggle */}
       <button 
         onClick={() => setIsMuted(!isMuted)}
@@ -300,7 +358,11 @@ export default function App() {
                 YOU ARE THE BEST! 👑
               </motion.span>
             ) : (
-              "SURPRISE, PIKACHU💛 💗!"
+              <span className="flex items-center justify-center gap-4">
+                {pikachuMode && <Zap className="w-8 h-8 sm:w-12 sm:h-12 text-party-gold fill-party-gold animate-pulse" />}
+                SURPRISE, PIKACHU💛 💗!
+                {pikachuMode && <Zap className="w-8 h-8 sm:w-12 sm:h-12 text-party-gold fill-party-gold animate-pulse" />}
+              </span>
             )}
           </motion.h1>
           
@@ -308,7 +370,7 @@ export default function App() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="text-xl md:text-2xl text-party-pink font-medium neon-text"
+            className="text-xl md:text-2xl text-party-pink font-medium neon-text mb-8"
           >
             {showFinale ? "HAPPY 20TH BIRTHDAY TO MY FAVORITE HUMAN!" : "Happy Birthday 💗! It's time to celebrate! ✨"}
           </motion.p>
