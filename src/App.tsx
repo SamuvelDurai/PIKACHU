@@ -8,8 +8,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { 
   Gift, 
-  Volume2, 
-  VolumeX, 
   Sparkles,
   Cake,
   Clock,
@@ -17,7 +15,13 @@ import {
   Star,
   Smile,
   Zap,
-  Heart
+  Heart,
+  Flame,
+  Utensils,
+  Coffee,
+  Film,
+  MessageCircle,
+  ShoppingBag
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -38,6 +42,196 @@ const INSIDE_JOKES = [
   "For your Kind Character",
   "For being my sunshine on rainy days ☀️"
 ];
+
+const VOUCHERS = [
+  { title: "Ice cream Treat🍦", desc: "I will give you icecream!", icon: <Utensils className="text-orange-400" /> },
+  { title: "Ice Cream Treat🍦", desc: "I will give you icecream!", icon: <Film className="text-blue-400" /> },
+  { title: "Food Treat", desc: "I will treat you with your fav food", icon: <Coffee className="text-amber-600" /> },
+];
+
+const BirthdayCake = ({ onBlowOut }: { onBlowOut: () => void }) => {
+  const [blown, setBlown] = useState(false);
+  const [candles, setCandles] = useState(Array(20).fill(true));
+
+  const handleBlow = () => {
+    if (blown) return;
+    setBlown(true);
+    
+    // Staggered blowout with slight randomness for a more natural "breath" feel
+    candles.forEach((_, i) => {
+      const delay = i * 35 + Math.random() * 150;
+      setTimeout(() => {
+        setCandles(prev => {
+          const next = [...prev];
+          next[i] = false;
+          return next;
+        });
+      }, delay);
+    });
+
+    // Trigger confetti after a short delay when most candles are out
+    setTimeout(onBlowOut, 700);
+  };
+
+  return (
+    <div className="relative flex flex-col items-center justify-center py-12">
+      <div className="relative cursor-pointer group" onClick={handleBlow}>
+        {/* Sparkles around the cake while lit */}
+        {!blown && (
+          <div className="absolute inset-0 pointer-events-none z-20">
+            {[...Array(12)].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0 }}
+                animate={{ 
+                  opacity: [0, 0.6, 0],
+                  scale: [0.5, 1, 0.5],
+                  x: [0, (Math.random() - 0.5) * 160],
+                  y: [0, (Math.random() - 0.5) * 160]
+                }}
+                transition={{ 
+                  repeat: Infinity, 
+                  duration: 2 + Math.random() * 2, 
+                  delay: Math.random() * 3 
+                }}
+                className="absolute top-1/2 left-1/2"
+              >
+                <Sparkles className="w-3 h-3 text-party-gold/30" />
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Wind Visual Effect */}
+        <AnimatePresence>
+          {blown && (
+            <motion.div
+              initial={{ x: -200, opacity: 0, scaleY: 0.5 }}
+              animate={{ x: 400, opacity: [0, 0.5, 0], scaleY: 1.5 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-white/5 blur-3xl rounded-full pointer-events-none z-40"
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Cake Glow - fades out when candles are blown */}
+        <AnimatePresence>
+          {!blown && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ 
+                opacity: [0.3, 0.5, 0.3],
+                scale: [1, 1.05, 1]
+              }}
+              exit={{ opacity: 0 }}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 bg-party-gold/30 rounded-full blur-[60px] pointer-events-none z-0"
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Candles */}
+        <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-1 w-48 z-10">
+          {candles.map((isLit, i) => (
+            <div key={i} className="relative">
+              <motion.div
+                animate={{ 
+                  height: isLit ? 24 : 18,
+                  backgroundColor: isLit ? "#ff69b4" : "#4a5568" 
+                }}
+                className="w-1.5 rounded-full relative"
+              >
+                <AnimatePresence>
+                  {isLit ? (
+                    <motion.div
+                      key="flame"
+                      initial={{ scale: 0 }}
+                      animate={{ 
+                        scale: [1, 1.2, 1],
+                        opacity: [0.8, 1, 0.8],
+                        rotate: [0, 5, -5, 0]
+                      }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ repeat: Infinity, duration: 0.5, delay: Math.random() }}
+                      className="absolute -top-3 left-1/2 -translate-x-1/2"
+                    >
+                      <Flame className="w-4 h-4 text-party-gold fill-party-gold" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="smoke"
+                      initial={{ y: 0, opacity: 0.8, scale: 0.5 }}
+                      animate={{ 
+                        y: [-10, -50, -80], 
+                        x: [0, 15, -15, 10],
+                        opacity: [0.8, 0.3, 0], 
+                        scale: [0.5, 1.8, 2.5] 
+                      }}
+                      transition={{ duration: 2.5, ease: "easeOut" }}
+                      className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-white/10 rounded-full blur-[3px]"
+                    />
+                  )}
+                </AnimatePresence>
+                {/* Candle Wick */}
+                <div className="w-0.5 h-1.5 bg-gray-800/60 absolute -top-1 left-1/2 -translate-x-1/2 rounded-full" />
+              </motion.div>
+            </div>
+          ))}
+        </div>
+
+        {/* Cake Layers with Frosting Details */}
+        <div className="flex flex-col items-center relative z-5">
+          {/* Frosting Drips */}
+          <div className="absolute top-8 left-0 right-0 flex justify-around px-4 z-20 pointer-events-none">
+             {[...Array(6)].map((_, i) => (
+               <div key={i} className="w-2 h-4 bg-white/30 rounded-full" style={{ marginTop: i % 2 === 0 ? '0px' : '6px' }} />
+             ))}
+          </div>
+
+          <div className="w-32 h-12 bg-white/20 rounded-t-xl border-x-4 border-t-4 border-white/30 relative overflow-hidden">
+             <div className="absolute top-0 left-0 right-0 h-2 bg-white/10" />
+             {!blown && (
+               <motion.div 
+                 animate={{ opacity: [0.1, 0.3, 0.1] }} 
+                 transition={{ repeat: Infinity, duration: 2 }} 
+                 className="absolute inset-0 bg-party-gold/10 blur-md" 
+               />
+             )}
+          </div>
+          <div className="w-48 h-16 bg-white/10 rounded-t-xl border-x-4 border-t-4 border-white/20 -mt-2 relative overflow-hidden">
+             <div className="absolute top-0 left-0 right-0 h-2 bg-white/10" />
+             {!blown && (
+               <motion.div 
+                 animate={{ opacity: [0.05, 0.2, 0.05] }} 
+                 transition={{ repeat: Infinity, duration: 2, delay: 0.5 }} 
+                 className="absolute inset-0 bg-party-gold/10 blur-md" 
+               />
+             )}
+          </div>
+          <div className="w-64 h-20 bg-white/5 rounded-t-xl border-x-4 border-t-4 border-white/10 -mt-2 relative overflow-hidden">
+             <div className="absolute top-0 left-0 right-0 h-2 bg-white/10" />
+             {!blown && (
+               <motion.div 
+                 animate={{ opacity: [0.02, 0.1, 0.02] }} 
+                 transition={{ repeat: Infinity, duration: 2, delay: 1 }} 
+                 className="absolute inset-0 bg-party-gold/10 blur-md" 
+               />
+             )}
+          </div>
+        </div>
+        
+        <div className="mt-8 text-center">
+          <motion.p 
+            animate={blown ? { scale: [1, 1.1, 1] } : {}}
+            className="text-sm font-bold uppercase tracking-widest text-party-gold animate-pulse"
+          >
+            {blown ? "WISH GRANTED! ✨" : "Make a wish & click to blow! 🎂"}
+          </motion.p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const LightningClick = () => {
   const [bolts, setBolts] = useState<{ id: number; x: number; y: number }[]>([]);
@@ -183,11 +377,11 @@ const ConfettiBackground = () => {
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [surprised, setSurprised] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
   const [jokeIndex, setJokeIndex] = useState(0);
   const [showFinale, setShowFinale] = useState(false);
   const [giftOpened, setGiftOpened] = useState(false);
   const [pikachuMode, setPikachuMode] = useState(false);
+  const [selectedVoucher, setSelectedVoucher] = useState<number | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -223,8 +417,7 @@ export default function App() {
     });
   };
 
-  const playSound = (type: 'pop' | 'tada' | 'cheer') => {
-    if (isMuted) return;
+  const playSound = (type: 'pop' | 'tada' | 'cheer' | 'whoosh') => {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     
     const osc = ctx.createOscillator();
@@ -254,6 +447,27 @@ export default function App() {
         o.start(ctx.currentTime + i * 0.1);
         o.stop(ctx.currentTime + i * 0.1 + 0.5);
       });
+    } else if (type === 'whoosh') {
+      const bufferSize = ctx.sampleRate * 0.5;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1000, ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.5);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.1, ctx.currentTime);
+      g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+      noise.connect(filter);
+      filter.connect(g);
+      g.connect(ctx.destination);
+      noise.start();
+      noise.stop(ctx.currentTime + 0.5);
     }
   };
 
@@ -329,14 +543,6 @@ export default function App() {
         <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline">
           {pikachuMode ? "Pikachu Mode ON" : "Pikachu Mode"}
         </span>
-      </button>
-
-      {/* Mute Toggle */}
-      <button 
-        onClick={() => setIsMuted(!isMuted)}
-        className="fixed top-6 right-6 z-40 p-3 glass hover:bg-white/20 transition-all rounded-full"
-      >
-        {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
       </button>
 
       {/* Main Content */}
@@ -483,6 +689,94 @@ export default function App() {
               )}
             </AnimatePresence>
           </div>
+        </section>
+
+        {/* Voucher Book Section */}
+        <section className="max-w-4xl mx-auto mb-20 px-4">
+          <h2 className="text-3xl font-bold text-center mb-10 flex items-center justify-center gap-3">
+            <ShoppingBag className="text-party-pink" />
+            Pikachu's Mystery Vouchers
+          </h2>
+          
+          <div className={cn(
+            "grid gap-6 transition-all duration-500",
+            selectedVoucher === null ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3" : "grid-cols-1 max-w-md mx-auto"
+          )}>
+            {VOUCHERS.map((voucher, i) => {
+              const isSelected = selectedVoucher === i;
+              const hasSelected = selectedVoucher !== null;
+
+              if (hasSelected && !isSelected) return null;
+
+              return (
+                <motion.div
+                  key={i}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  whileHover={!hasSelected ? { y: -5, scale: 1.02 } : {}}
+                  onClick={() => {
+                    if (!hasSelected) {
+                      setSelectedVoucher(i);
+                      playSound('pop');
+                      triggerConfetti(0.3);
+                    }
+                  }}
+                  className={cn(
+                    "glass p-8 border-2 border-dashed transition-all cursor-pointer relative overflow-hidden",
+                    !hasSelected 
+                      ? "border-white/20 hover:border-party-gold/50" 
+                      : "border-party-gold shadow-[0_0_30px_rgba(255,215,0,0.4)] bg-white/10"
+                  )}
+                >
+                  {!hasSelected ? (
+                    <div className="text-center py-10">
+                      <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-party-gold/20 transition-colors">
+                        <Gift className="w-8 h-8 text-party-gold/40" />
+                      </div>
+                      <h4 className="font-black text-2xl text-white/90 tracking-tighter">COUPON {i + 1}</h4>
+                      <p className="text-[10px] text-party-pink mt-3 font-black tracking-[0.2em] uppercase">Click to Reveal ✨</p>
+                    </div>
+                  ) : (
+                    <motion.div
+                      initial={{ rotateY: 90, opacity: 0 }}
+                      animate={{ rotateY: 0, opacity: 1 }}
+                      transition={{ duration: 0.5, type: "spring" }}
+                      className="text-center"
+                    >
+                      <div className="flex justify-center mb-6">
+                        <div className="p-5 bg-party-gold/20 rounded-2xl ring-4 ring-party-gold/10">
+                          {React.cloneElement(voucher.icon as React.ReactElement, { className: "w-10 h-10" })}
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">{voucher.title}</h3>
+                      <p className="text-party-pink font-medium italic mb-6">"{voucher.desc}"</p>
+                      
+                      <div className="pt-6 border-t border-white/10">
+                        <div className="text-[10px] uppercase tracking-[0.4em] font-black text-party-gold mb-2">
+                          Wish Granted Successfully
+                        </div>
+                        <div className="flex justify-center gap-1">
+                          {[...Array(5)].map((_, j) => (
+                            <Star key={j} className="w-3 h-3 text-party-gold fill-party-gold" />
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Birthday Cake Section */}
+        <section className="max-w-2xl mx-auto mb-20">
+          <BirthdayCake onBlowOut={() => {
+            playSound('whoosh');
+            setTimeout(() => playSound('pop'), 400);
+            triggerConfetti(0.8, { spread: 100, particleCount: 200 });
+          }} />
         </section>
 
         {/* Finale Button Section */}
